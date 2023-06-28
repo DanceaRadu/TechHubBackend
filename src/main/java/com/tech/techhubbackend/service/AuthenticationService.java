@@ -4,6 +4,7 @@ import com.tech.techhubbackend.DTO.DTOs.AuthenticationRequest;
 import com.tech.techhubbackend.DTO.DTOs.AuthenticationResponse;
 import com.tech.techhubbackend.DTO.DTOs.RegisterRequest;
 import com.tech.techhubbackend.auth.Role;
+import com.tech.techhubbackend.exceptionhandling.exceptions.EntityAlreadyExistsException;
 import com.tech.techhubbackend.model.User;
 import com.tech.techhubbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,8 @@ public class AuthenticationService {
         user.set_username(request.getUsername());
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
+        if(userRepository.existsBy_username(user.get_username())) throw new EntityAlreadyExistsException("User with this username already exists");
+        if(userRepository.existsByEmail(user.getEmail())) throw new EntityAlreadyExistsException("User with this email already exists");
         userRepository.save(user);
 
         var jwtToken = jwtService.generateToken(user);
