@@ -29,7 +29,6 @@ public class ApplicationConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        System.out.println("natads");
         return username -> {
             if(userRepository.existsById(UUID.fromString(username))) {
                 return userRepository.getReferenceById(UUID.fromString(username));
