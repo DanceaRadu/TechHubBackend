@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.config;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,6 +26,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests()
+                .requestMatchers(HttpMethod.OPTIONS).permitAll()
                 .requestMatchers("/api/v1/auth/**")
                 .permitAll()
                 .anyRequest()

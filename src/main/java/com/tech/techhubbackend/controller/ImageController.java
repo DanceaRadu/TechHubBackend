@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/image")
+@CrossOrigin(origins = "http://localhost:3000")
 public class ImageController {
 
     private final ImageService imageService;
@@ -19,7 +20,7 @@ public class ImageController {
         this.imageService = imageService;
     }
 
-    @GetMapping(value = "{id}", produces = MediaType.IMAGE_JPEG_VALUE)
+    @GetMapping(path = "{id}", produces = MediaType.IMAGE_JPEG_VALUE)
     private @ResponseBody Resource getImageById(@PathVariable UUID id){
         return imageService.getImageById(id);
     }

@@ -25,14 +25,14 @@ public class ImageService {
 
     public Resource getImageById(UUID id) {
 
-        if(!imageRepository.existsById(id)) throw new ImageNotFoundException(id);
+        if(!imageRepository.existsById(id)) throw new ImageNotFoundException();
 
         Path path;
         path = Paths.get("D:/TechHub/images" + imageRepository.getReferenceById(id).getFilePath() + '/' + imageRepository.getReferenceById(id).getFilename());
         try {
             return new ByteArrayResource(Files.readAllBytes(path));
         } catch (IOException e) {
-            throw new ImageNotFoundException(id);
+            throw new ImageNotFoundException();
         }
     }
 }
