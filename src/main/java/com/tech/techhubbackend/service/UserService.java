@@ -2,9 +2,7 @@ package com.tech.techhubbackend.service;
 
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
 import com.tech.techhubbackend.DTO.mappers.DTOMapper;
-import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotFoundException;
-import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
-import com.tech.techhubbackend.exceptionhandling.exceptions.UserNotFoundException;
+import com.tech.techhubbackend.exceptionhandling.exceptions.*;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
@@ -72,5 +70,13 @@ public class UserService {
         shoppingCartEntry.setUser(userRepository.getReferenceById(userID));
         shoppingCartEntry.setQuantity(1);
         shoppingCartEntryRepository.save(shoppingCartEntry);
+    }
+
+    public void updateQuantity(UUID userID, ShoppingCartEntry newEntry) {
+        if(!shoppingCartEntryRepository.existsById(newEntry.getShoppingCartEntryID())) throw new ShoppingCartEntryNotFoundException(newEntry.getShoppingCartEntryID());
+        ShoppingCartEntry oldEntry = shoppingCartEntryRepository.getReferenceById(newEntry.getShoppingCartEntryID());
+        if(!oldEntry.getUser().getUserID().equals(userID)) throw new ForbiddenRequestException("Cannot update the shopping cart entry of another user");
+
+        shoppingCartEntryRepository.save(newEntry);
     }
 }
