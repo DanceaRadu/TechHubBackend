@@ -1,8 +1,6 @@
 package com.tech.techhubbackend.exceptionhandling.advice;
 
-import com.tech.techhubbackend.exceptionhandling.exceptions.EntityAlreadyExistsException;
-import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotFoundException;
-import com.tech.techhubbackend.exceptionhandling.exceptions.UserNotFoundException;
+import com.tech.techhubbackend.exceptionhandling.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -35,7 +33,7 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler({ImageNotFoundException.class, UserNotFoundException.class})
+    @ExceptionHandler({ImageNotFoundException.class, UserNotFoundException.class, ProductNotFoundException.class, ShoppingCartEntryNotFoundException.class})
     public ResponseEntity<Object> imageNotFoundExceptionHandler(ImageNotFoundException e) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("error", e.getMessage());
@@ -43,5 +41,27 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
         body.put("time", getCurrentTime());
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ForbiddenRequestException.class)
+    public ResponseEntity<Object> forbiddenRequestExceptionHandler(ForbiddenRequestException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", e.getMessage());
+        body.put("status", HttpStatus.FORBIDDEN);
+        body.put("time", getCurrentTime());
+
+        return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
+    }
+
+    @ResponseBody
+    @ExceptionHandler(ImageNotPresentException.class)
+    public ResponseEntity<Object> imageNotPresentExceptionHandler(ImageNotPresentException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", e.getMessage());
+        body.put("status", HttpStatus.BAD_REQUEST);
+        body.put("time", getCurrentTime());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 }
