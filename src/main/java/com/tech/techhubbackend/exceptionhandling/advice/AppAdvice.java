@@ -53,4 +53,15 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }
+
+    @ResponseBody
+    @ExceptionHandler(ImageNotPresentException.class)
+    public ResponseEntity<Object> imageNotPresentExceptionHandler(ImageNotPresentException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", e.getMessage());
+        body.put("status", HttpStatus.BAD_REQUEST);
+        body.put("time", getCurrentTime());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
 }

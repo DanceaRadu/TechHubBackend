@@ -48,7 +48,7 @@ public class UserService {
         if(image == null) throw new ImageNotFoundException();
 
         Path path;
-        path = Paths.get("D:/TechHub/images" + image.getFilePath() + '/' + image.getFilename());
+        path = Paths.get(image.getFilePath() + '/' + image.getFilename());
         try {
             return new ByteArrayResource(Files.readAllBytes(path));
         } catch (IOException e) {

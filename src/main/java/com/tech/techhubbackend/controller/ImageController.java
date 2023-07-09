@@ -21,7 +21,7 @@ public class ImageController {
     }
 
     @GetMapping(path = "{id}", produces = MediaType.IMAGE_JPEG_VALUE)
-    private @ResponseBody Resource getImageById(@PathVariable UUID id){
+    public @ResponseBody Resource getImageById(@PathVariable UUID id){
         return imageService.getImageById(id);
     }
 }

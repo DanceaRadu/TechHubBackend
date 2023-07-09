@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,6 +28,7 @@ public @Data class Product {
     @Column(name = "stock", nullable = false)
     private int stock;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private List<Image> productImages;
+    @JsonManagedReference(value = "product")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, mappedBy = "product")
+    private List<ProductImage> productImages;
 }
