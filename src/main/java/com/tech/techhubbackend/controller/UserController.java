@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.controller;
 
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
+import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.service.JwtService;
 import com.tech.techhubbackend.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,5 +48,17 @@ public class UserController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @GetMapping(path="shoppingcart")
+    private List<Product> getUserShoppingCart(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return userService.getUserShoppingCart(UUID.fromString(jwtService.extractID(token)));
+    }
+
+    @PostMapping(path = "shoppingcart/{productID}")
+    private void addShoppingCartItem(HttpServletRequest request, @PathVariable UUID productID) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.addShoppingCartItem(UUID.fromString(jwtService.extractID(token)), productID);
     }
 }

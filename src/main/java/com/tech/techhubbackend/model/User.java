@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.tech.techhubbackend.auth.Role;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -41,6 +42,10 @@ public @Data class User implements UserDetails {
 
     @OneToOne(cascade = CascadeType.REMOVE)
     private Image profileImage;
+
+    @JsonManagedReference(value = "User shopping cart entry")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<ShoppingCartEntry> shoppingCartEntries;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

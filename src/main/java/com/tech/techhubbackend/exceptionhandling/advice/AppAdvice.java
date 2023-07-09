@@ -2,6 +2,7 @@ package com.tech.techhubbackend.exceptionhandling.advice;
 
 import com.tech.techhubbackend.exceptionhandling.exceptions.EntityAlreadyExistsException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotFoundException;
+import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler({ImageNotFoundException.class, UserNotFoundException.class})
+    @ExceptionHandler({ImageNotFoundException.class, UserNotFoundException.class, ProductNotFoundException.class})
     public ResponseEntity<Object> imageNotFoundExceptionHandler(ImageNotFoundException e) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("error", e.getMessage());
