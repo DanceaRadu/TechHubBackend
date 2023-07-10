@@ -44,4 +44,10 @@ public class ProductController {
     public List<Image> getProductImages(@PathVariable UUID id) {
         return productService.getProductImages(id);
     }
+
+    //TODO delete
+    @GetMapping(path = "all")
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
+    }
 }

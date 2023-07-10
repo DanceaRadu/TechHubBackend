@@ -1,7 +1,7 @@
 package com.tech.techhubbackend.controller;
 
+import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
-import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
 import com.tech.techhubbackend.service.JwtService;
 import com.tech.techhubbackend.service.UserService;
@@ -52,15 +52,15 @@ public class UserController {
     }
 
     @GetMapping(path="shoppingcart")
-    private List<Product> getUserShoppingCart(HttpServletRequest request) {
+    private List<ShoppingCartEntryDTO> getUserShoppingCart(HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         return userService.getUserShoppingCart(UUID.fromString(jwtService.extractID(token)));
     }
 
     @PostMapping(path = "shoppingcart/{productID}")
-    private void addShoppingCartItem(HttpServletRequest request, @PathVariable UUID productID) {
+    private ShoppingCartEntryDTO addShoppingCartItem(HttpServletRequest request, @PathVariable UUID productID) {
         String token = request.getHeader("Authorization").substring(7);
-        userService.addShoppingCartItem(UUID.fromString(jwtService.extractID(token)), productID);
+        return userService.addShoppingCartItem(UUID.fromString(jwtService.extractID(token)), productID);
     }
 
     @PutMapping(path = "shoppingcart")

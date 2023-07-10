@@ -1,10 +1,10 @@
 package com.tech.techhubbackend.service;
 
+import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
 import com.tech.techhubbackend.DTO.mappers.DTOMapper;
 import com.tech.techhubbackend.exceptionhandling.exceptions.*;
 import com.tech.techhubbackend.model.Image;
-import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
 import com.tech.techhubbackend.repository.ProductRepository;
 import com.tech.techhubbackend.repository.ShoppingCartEntryRepository;
@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -56,20 +57,29 @@ public class UserService {
         }
     }
 
-    public List<Product> getUserShoppingCart(UUID userID) {
+    public List<ShoppingCartEntryDTO> getUserShoppingCart(UUID userID) {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
-        return userRepository.getReferenceById(userID).getShoppingCartEntries().stream().map(ShoppingCartEntry::getProduct).toList();
+        return userRepository.getReferenceById(userID).getShoppingCartEntries().stream().map(dtoMapper::shoppingCartEntryToShoppingCartEntryDTO).toList();
     }
 
-    public void addShoppingCartItem(UUID userID, UUID productID) {
+    public ShoppingCartEntryDTO addShoppingCartItem(UUID userID, UUID productID) {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
         if(!productRepository.existsById(productID)) throw new ProductNotFoundException(productID);
 
+        //check if the product already exists in the shopping cart
+        Optional<ShoppingCartEntry> optionalEntry = shoppingCartEntryRepository.getShoppingCartEntryByProductAndUser(productRepository.getReferenceById(productID), userRepository.getReferenceById(userID));
+        if(optionalEntry.isPresent()) {
+            ShoppingCartEntry entry = optionalEntry.get();
+            entry.setQuantity(entry.getQuantity() + 1);
+            shoppingCartEntryRepository.save(entry);
+            return dtoMapper.shoppingCartEntryToShoppingCartEntryDTO(entry);
+        }
         ShoppingCartEntry shoppingCartEntry = new ShoppingCartEntry();
         shoppingCartEntry.setProduct(productRepository.getReferenceById(productID));
         shoppingCartEntry.setUser(userRepository.getReferenceById(userID));
         shoppingCartEntry.setQuantity(1);
         shoppingCartEntryRepository.save(shoppingCartEntry);
+        return dtoMapper.shoppingCartEntryToShoppingCartEntryDTO(shoppingCartEntry);
     }
 
     public void updateQuantity(UUID userID, ShoppingCartEntry newEntry) {

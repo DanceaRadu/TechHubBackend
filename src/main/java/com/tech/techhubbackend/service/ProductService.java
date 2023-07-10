@@ -93,4 +93,9 @@ public class ProductService {
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         return productID.toString() + "_" + UUID.randomUUID() + extension;
     }
+
+    //TODO delete
+    public List<Product> getAllProducts() {
+        return productRepository.getProductsByDescriptionContains("");
+    }
 }
