@@ -78,6 +78,7 @@ public class UserService {
         shoppingCartEntry.setProduct(productRepository.getReferenceById(productID));
         shoppingCartEntry.setUser(userRepository.getReferenceById(userID));
         shoppingCartEntry.setQuantity(1);
+        shoppingCartEntry.setShoppingCartEntryID(null);
         shoppingCartEntryRepository.save(shoppingCartEntry);
         return dtoMapper.shoppingCartEntryToShoppingCartEntryDTO(shoppingCartEntry);
     }
