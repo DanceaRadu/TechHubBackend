@@ -83,8 +83,21 @@ public class UserService {
         return dtoMapper.shoppingCartEntryToShoppingCartEntryDTO(shoppingCartEntry);
     }
 
+    public void deleteShoppingCartItem(UUID userID, UUID productID) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        if(!productRepository.existsById(productID)) throw new ProductNotFoundException(productID);
+
+        Optional<ShoppingCartEntry> shoppingCartEntry = shoppingCartEntryRepository.getShoppingCartEntryByProductAndUser(
+                productRepository.getReferenceById(productID),
+                userRepository.getReferenceById(userID)
+                );
+
+        if(shoppingCartEntry.isPresent()) shoppingCartEntryRepository.delete(shoppingCartEntry.get());
+        else throw new ShoppingCartEntryNotFoundException();
+    }
+
     public void updateQuantity(UUID userID, ShoppingCartEntry newEntry) {
-        if(!shoppingCartEntryRepository.existsById(newEntry.getShoppingCartEntryID())) throw new ShoppingCartEntryNotFoundException(newEntry.getShoppingCartEntryID());
+        if(!shoppingCartEntryRepository.existsById(newEntry.getShoppingCartEntryID())) throw new ShoppingCartEntryNotFoundException();
         ShoppingCartEntry oldEntry = shoppingCartEntryRepository.getReferenceById(newEntry.getShoppingCartEntryID());
         if(!oldEntry.getUser().getUserID().equals(userID)) throw new ForbiddenRequestException("Cannot update the shopping cart entry of another user");
 

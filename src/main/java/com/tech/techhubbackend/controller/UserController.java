@@ -63,6 +63,12 @@ public class UserController {
         return userService.addShoppingCartItem(UUID.fromString(jwtService.extractID(token)), productID);
     }
 
+    @DeleteMapping(path="shoppingcart/{productID}")
+    private void deleteShoppingCartEntry(HttpServletRequest request, @PathVariable UUID productID) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.deleteShoppingCartItem(UUID.fromString(jwtService.extractID(token)), productID);
+    }
+
     @PutMapping(path = "shoppingcart")
     private void updateQuantity(@RequestBody ShoppingCartEntry newEntry, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
