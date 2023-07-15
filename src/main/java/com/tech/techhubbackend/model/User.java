@@ -40,6 +40,9 @@ public @Data class User implements UserDetails {
     @Column(name = "role", nullable = false)
     private Role role;
 
+    @Column(name = "is_verified")
+    private boolean isVerified;
+
     @OneToOne(cascade = CascadeType.REMOVE)
     private Image profileImage;
 
@@ -74,6 +77,6 @@ public @Data class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return isVerified;
     }
 }

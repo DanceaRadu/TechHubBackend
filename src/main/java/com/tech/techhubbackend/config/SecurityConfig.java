@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .requestMatchers("api/v1/product/**").permitAll()
                 .requestMatchers("api/v1/image/**").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/validate").authenticated()
                 .anyRequest()
                 .authenticated()
                 .and()

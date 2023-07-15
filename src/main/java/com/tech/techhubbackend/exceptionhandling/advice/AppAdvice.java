@@ -33,7 +33,13 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
     }
 
     @ResponseBody
-    @ExceptionHandler({ImageNotFoundException.class, UserNotFoundException.class, ProductNotFoundException.class, ShoppingCartEntryNotFoundException.class})
+    @ExceptionHandler({
+            ImageNotFoundException.class,
+            UserNotFoundException.class,
+            ProductNotFoundException.class,
+            ShoppingCartEntryNotFoundException.class,
+            EmailVerificationNotFoundException.class
+    })
     public ResponseEntity<Object> imageNotFoundExceptionHandler(ImageNotFoundException e) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("error", e.getMessage());
