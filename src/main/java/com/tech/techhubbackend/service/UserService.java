@@ -6,6 +6,7 @@ import com.tech.techhubbackend.DTO.mappers.DTOMapper;
 import com.tech.techhubbackend.exceptionhandling.exceptions.*;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
+import com.tech.techhubbackend.model.User;
 import com.tech.techhubbackend.repository.ProductRepository;
 import com.tech.techhubbackend.repository.ShoppingCartEntryRepository;
 import com.tech.techhubbackend.repository.UserRepository;
@@ -102,5 +103,19 @@ public class UserService {
         if(!oldEntry.getUser().getUserID().equals(userID)) throw new ForbiddenRequestException("Cannot update the shopping cart entry of another user");
 
         shoppingCartEntryRepository.save(newEntry);
+    }
+
+    public void updateEmail(UUID userID, String newEmail) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        if(userRepository.existsByEmail(newEmail)) throw new EntityAlreadyExistsException("User with this email already exists");
+
+        User user = userRepository.getReferenceById(userID);
+        user.setEmail(newEmail);
+        userRepository.save(user);
+    }
+
+    public boolean checkVerifiedEmailStatus(UUID userID) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        return userRepository.getReferenceById(userID).isVerified();
     }
 }
