@@ -104,6 +104,8 @@ public class AuthenticationService {
         User user = verification.getUser();
         user.setVerified(true);
         userRepository.save(user);
+
+        emailVerificationRepository.delete(verification);
         return true;
     }
 }
