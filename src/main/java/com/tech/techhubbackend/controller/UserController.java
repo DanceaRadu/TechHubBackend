@@ -18,7 +18,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/user")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.OPTIONS,
+        RequestMethod.DELETE,
+        RequestMethod.PUT,
+        RequestMethod.PATCH})
 public class UserController {
 
     private final JwtService jwtService;
@@ -73,5 +79,17 @@ public class UserController {
     private void updateQuantity(@RequestBody ShoppingCartEntry newEntry, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         userService.updateQuantity(UUID.fromString(jwtService.extractID(token)), newEntry);
+    }
+
+    @PostMapping(path = "email/update/{email}")
+    private void updateEmail(@PathVariable String email, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.updateEmail(UUID.fromString(jwtService.extractID(token)), email);
+    }
+
+    @GetMapping(path = "/verified")
+    private boolean checkVerifiedEmailStatus(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return userService.checkVerifiedEmailStatus(UUID.fromString(jwtService.extractID(token)));
     }
 }
