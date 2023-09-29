@@ -4,6 +4,7 @@ import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +44,11 @@ public class ProductController {
     @GetMapping(path = "{id}/images")
     public List<Image> getProductImages(@PathVariable UUID id) {
         return productService.getProductImages(id);
+    }
+
+    @GetMapping("paginate")
+    public Page<Product> findAllProductsPaginated(@RequestParam int pageNumber, @RequestParam int pageSize) {
+        return productService.findAllProductsPaginated(pageNumber, pageSize);
     }
 
     //TODO delete

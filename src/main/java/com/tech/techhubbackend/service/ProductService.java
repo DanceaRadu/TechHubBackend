@@ -9,6 +9,8 @@ import com.tech.techhubbackend.repository.ImageRepository;
 import com.tech.techhubbackend.repository.ProductImageRepository;
 import com.tech.techhubbackend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -92,6 +94,11 @@ public class ProductService {
         String originalFileName = StringUtils.cleanPath(filename);
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         return productID.toString() + "_" + UUID.randomUUID() + extension;
+    }
+
+    public Page<Product> findAllProductsPaginated(int pageNumber, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        return productRepository.findAll(pageRequest);
     }
 
     //TODO delete
