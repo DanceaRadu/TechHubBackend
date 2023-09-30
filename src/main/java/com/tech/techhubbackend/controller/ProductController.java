@@ -29,8 +29,8 @@ public class ProductController {
     }
 
     @PostMapping
-    private void addProduct(@RequestBody Product p) {
-        productService.addProduct(p);
+    public UUID addProduct(@RequestBody Product p) {
+        return productService.addProduct(p);
     }
 
     @PostMapping(path = "image")

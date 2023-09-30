@@ -42,7 +42,7 @@ public class ProductService {
         return productRepository.getReferenceById(id);
     }
 
-    public void addProduct(Product p) {
+    public UUID addProduct(Product p) {
         productRepository.save(p);
         try {
             Path path = Paths.get("D:/TechHub/images/product/" + p.getProductID());
@@ -50,6 +50,7 @@ public class ProductService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return p.getProductID();
     }
 
     public void addImage(UUID productID, MultipartFile image) {
