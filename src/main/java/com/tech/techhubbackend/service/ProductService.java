@@ -1,6 +1,15 @@
 package com.tech.techhubbackend.service;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotPresentException;
+import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
@@ -21,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -51,6 +61,35 @@ public class ProductService {
             e.printStackTrace();
         }
         return p.getProductID();
+    }
+
+    public void deleteProduct(UUID uuid) {
+        if(!productRepository.existsById(uuid)) throw new ProductNotFoundException(uuid);
+        productRepository.delete(productRepository.getReferenceById(uuid));
+    }
+
+    public void patchProduct(UUID uuid, JsonPatch patch) {
+        if(!productRepository.existsById(uuid)) throw new ProductNotFoundException(uuid);
+        try {
+            Product productPatched;
+            Optional<Product> optionalProduct = productRepository.findById(uuid);
+            if(optionalProduct.isPresent()) {
+                Product p = optionalProduct.get();
+                productPatched = applyPatchToProduct(patch, p);
+            }
+            else throw new ProductNotFoundException(uuid);
+            productRepository.save(productPatched);
+        } catch (JsonPatchException | JsonProcessingException e) {
+            throw new InternalServerErrorException("Error parsing patch request." + e.getMessage());
+        }
+    }
+
+    private Product applyPatchToProduct(JsonPatch patch, Product p) throws JsonPatchException, JsonProcessingException{
+        ObjectMapper o = new ObjectMapper();
+        o.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        o.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        JsonNode patched = patch.apply(o.convertValue(p, JsonNode.class));
+        return o.treeToValue(patched, Product.class);
     }
 
     public void addImage(UUID productID, MultipartFile image) {
@@ -100,6 +139,11 @@ public class ProductService {
     public Page<Product> findAllProductsPaginated(int pageNumber, int pageSize) {
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
         return productRepository.findAll(pageRequest);
+    }
+
+    public Page<Product> findAllProductsByName(int pageNumber, int pageSize, String query) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
     //TODO delete

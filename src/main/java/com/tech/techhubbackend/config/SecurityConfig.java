@@ -23,20 +23,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeRequests()
+        http.csrf(AbstractHttpConfigurer::disable);
+        http.authorizeHttpRequests((auth) -> auth
+
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
-                .requestMatchers("api/v1/product/**").permitAll()
-                .requestMatchers("api/v1/image/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/product").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/product").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/product").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/product/image").hasAuthority("ADMIN")
+                .requestMatchers("/api/v1/product/**").permitAll()
+                .requestMatchers("/api/v1/image/**").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/auth/validate").authenticated()
                 .anyRequest()
                 .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                );
+        http
+                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
