@@ -70,4 +70,15 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
+
+    @ResponseBody
+    @ExceptionHandler(InternalServerErrorException.class)
+    public ResponseEntity<Object> internalServerErrorExceptionHandler(InternalServerErrorException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", e.getMessage());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR);
+        body.put("time", getCurrentTime());
+
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

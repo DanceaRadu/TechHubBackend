@@ -22,7 +22,7 @@ public @Data class Product {
     @Column(name = "product_price", nullable = false)
     private double productPrice;
 
-    @Column(name = "product_description", nullable = false)
+    @Column(name = "product_description", nullable = false, length = 2000)
     private String description;
 
     @Column(name = "stock", nullable = false)

@@ -1,6 +1,15 @@
 package com.tech.techhubbackend.service;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotPresentException;
+import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
@@ -9,6 +18,8 @@ import com.tech.techhubbackend.repository.ImageRepository;
 import com.tech.techhubbackend.repository.ProductImageRepository;
 import com.tech.techhubbackend.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,6 +30,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -40,7 +52,7 @@ public class ProductService {
         return productRepository.getReferenceById(id);
     }
 
-    public void addProduct(Product p) {
+    public UUID addProduct(Product p) {
         productRepository.save(p);
         try {
             Path path = Paths.get("D:/TechHub/images/product/" + p.getProductID());
@@ -48,6 +60,36 @@ public class ProductService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return p.getProductID();
+    }
+
+    public void deleteProduct(UUID uuid) {
+        if(!productRepository.existsById(uuid)) throw new ProductNotFoundException(uuid);
+        productRepository.delete(productRepository.getReferenceById(uuid));
+    }
+
+    public void patchProduct(UUID uuid, JsonPatch patch) {
+        if(!productRepository.existsById(uuid)) throw new ProductNotFoundException(uuid);
+        try {
+            Product productPatched;
+            Optional<Product> optionalProduct = productRepository.findById(uuid);
+            if(optionalProduct.isPresent()) {
+                Product p = optionalProduct.get();
+                productPatched = applyPatchToProduct(patch, p);
+            }
+            else throw new ProductNotFoundException(uuid);
+            productRepository.save(productPatched);
+        } catch (JsonPatchException | JsonProcessingException e) {
+            throw new InternalServerErrorException("Error parsing patch request." + e.getMessage());
+        }
+    }
+
+    private Product applyPatchToProduct(JsonPatch patch, Product p) throws JsonPatchException, JsonProcessingException{
+        ObjectMapper o = new ObjectMapper();
+        o.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        o.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        JsonNode patched = patch.apply(o.convertValue(p, JsonNode.class));
+        return o.treeToValue(patched, Product.class);
     }
 
     public void addImage(UUID productID, MultipartFile image) {
@@ -92,6 +134,16 @@ public class ProductService {
         String originalFileName = StringUtils.cleanPath(filename);
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         return productID.toString() + "_" + UUID.randomUUID() + extension;
+    }
+
+    public Page<Product> findAllProductsPaginated(int pageNumber, int pageSize) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        return productRepository.findAll(pageRequest);
+    }
+
+    public Page<Product> findAllProductsByName(int pageNumber, int pageSize, String query) {
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+        return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
     //TODO delete

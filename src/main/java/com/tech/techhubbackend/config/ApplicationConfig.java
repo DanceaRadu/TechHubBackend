@@ -20,7 +20,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-
     private UserRepository userRepository;
 
     @Autowired
