@@ -50,6 +50,10 @@ public @Data class User implements UserDetails {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<ShoppingCartEntry> shoppingCartEntries;
 
+    @JsonManagedReference(value = "reviewer")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "reviewer", cascade = CascadeType.REMOVE)
+    private List<Review> userReviews;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
