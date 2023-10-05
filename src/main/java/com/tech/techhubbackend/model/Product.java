@@ -31,4 +31,16 @@ public @Data class Product {
     @JsonManagedReference(value = "product")
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, mappedBy = "product")
     private List<ProductImage> productImages;
+
+    @JsonManagedReference(value = "reviewedProduct")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE, mappedBy = "reviewedProduct")
+    private List<Review> productReviews;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id", referencedColumnName = "category_id")
+    private ProductCategory productCategory;
+
+    public String toString() {
+        return "This method is only written so that Criteria queries dont break";
+    }
 }

@@ -36,6 +36,9 @@ public @Data class User implements UserDetails {
     @Column(name = "email", nullable = false, unique = true)
     private String email;
 
+    @Column(name = "phone_number", unique = true)
+    private String phoneNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
@@ -49,6 +52,10 @@ public @Data class User implements UserDetails {
     @JsonManagedReference(value = "User shopping cart entry")
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<ShoppingCartEntry> shoppingCartEntries;
+
+    @JsonManagedReference(value = "reviewer")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "reviewer", cascade = CascadeType.REMOVE)
+    private List<Review> userReviews;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

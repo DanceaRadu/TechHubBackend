@@ -8,17 +8,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.tech.techhubbackend.DTO.DTOs.ProductSorter;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotPresentException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
+import com.tech.techhubbackend.model.ProductCategory;
 import com.tech.techhubbackend.model.ProductImage;
 import com.tech.techhubbackend.repository.ImageRepository;
+import com.tech.techhubbackend.repository.ProductCategoryRepository;
 import com.tech.techhubbackend.repository.ProductImageRepository;
 import com.tech.techhubbackend.repository.ProductRepository;
+import jakarta.persistence.*;
+import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -29,9 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -39,12 +43,18 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
     private final ProductImageRepository productImageRepository;
+    private final ProductCategoryRepository productCategoryRepository;
+
+    @PersistenceContext
+    private final EntityManager em;
 
     @Autowired
-    public ProductService(ProductRepository productRepository, ImageRepository imageRepository, ProductImageRepository productImageRepository) {
+    public ProductService(ProductRepository productRepository, ImageRepository imageRepository, ProductImageRepository productImageRepository, ProductCategoryRepository productCategoryRepository, EntityManager em) {
         this.productRepository = productRepository;
         this.imageRepository = imageRepository;
         this.productImageRepository = productImageRepository;
+        this.productCategoryRepository = productCategoryRepository;
+        this.em = em;
     }
 
     public Product getProduct(UUID id) {
@@ -146,8 +156,41 @@ public class ProductService {
         return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
-    //TODO delete
-    public List<Product> getAllProducts() {
-        return productRepository.getProductsByDescriptionContains("");
+    public Page<Product> getPaginatedProducts(ProductSorter pc) {
+
+        PageRequest pageRequest = PageRequest.of(pc.getPageNumber()-1, pc.getPageSize());
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Product> cq = cb.createQuery(Product.class);
+        Root<Product> product = cq.from(Product.class);
+
+        String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
+
+        List<Predicate> finalPredicates = new ArrayList<>();
+
+        if(!Objects.equals(productCategoryString, "All")) {
+            // Define the category name parameter
+            ParameterExpression<String> categoryNameParam = cb.parameter(String.class, "categoryName");
+            // Join the Product entity with the ProductCategory entity
+            Join<Product, ProductCategory> categoryJoin = product.join("productCategory");
+            // Create the predicate to check if the product belongs to the specified category
+            Predicate predicateCategory = cb.equal(categoryJoin.get("categoryName"), categoryNameParam);
+            finalPredicates.add(predicateCategory);
+        }
+
+        Predicate predicateName = cb.like(cb.upper(product.get("productName")), ("%" + pc.getQuery() + "%").toUpperCase());
+        cq.orderBy(cb.asc(product.get("productName")));
+        finalPredicates.add(cb.and(predicateName));
+        cq.where(finalPredicates.toArray(new Predicate[0]));
+
+        Query query = em.createQuery(cq);
+        if(!Objects.equals(productCategoryString, "All")) query.setParameter("categoryName", productCategoryString);
+        List<Product> result = query.getResultList();
+        System.out.println(result);
+        return new PageImpl<>(result, pageRequest, result.size());
+
+        /*if(productCategoryRepository.existsById(pc.getProductCategory().getCategoryID()))
+            if(Objects.equals(productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName(), "All")) return productRepository.findAllByProductNameContainingIgnoreCaseOrderByProductNameAsc(pageRequest, pc.getQuery());
+        return productRepository.findAllByProductCategoryAndProductNameContainingIgnoreCaseOrderByProductPrice(pageRequest, pc.getProductCategory(), pc.getQuery());*/
     }
 }
