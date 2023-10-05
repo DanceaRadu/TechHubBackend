@@ -27,13 +27,22 @@ public class SecurityConfig {
         http.authorizeHttpRequests((auth) -> auth
 
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()
+
                 .requestMatchers(HttpMethod.POST, "/api/v1/product").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/product/paginate/filter/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/product").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/product").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/product/**").permitAll()
+
                 .requestMatchers(HttpMethod.POST, "/api/v1/product/image").hasAuthority("ADMIN")
-                .requestMatchers("/api/v1/product/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/product/image").hasAuthority("ADMIN")
+
                 .requestMatchers("/api/v1/image/**").permitAll()
+
+                .requestMatchers(HttpMethod.POST,"/api/v1/category").hasAuthority("ADMIN")
+                .requestMatchers(HttpMethod.DELETE,"/api/v1/category").hasAuthority("ADMIN")
                 .requestMatchers("/api/v1/category/**").permitAll()
+
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/auth/validate").authenticated()
                 .anyRequest()

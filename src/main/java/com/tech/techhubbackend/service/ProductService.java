@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.tech.techhubbackend.DTO.DTOs.CustomPageDTO;
 import com.tech.techhubbackend.DTO.DTOs.ProductSorter;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotPresentException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorException;
@@ -23,8 +24,8 @@ import com.tech.techhubbackend.repository.ProductRepository;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.support.PagedListHolder;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -156,18 +157,60 @@ public class ProductService {
         return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
-    public Page<Product> getPaginatedProducts(ProductSorter pc) {
+    private Predicate filterProducts(String filter) {
+        return null;
+    }
 
-        PageRequest pageRequest = PageRequest.of(pc.getPageNumber()-1, pc.getPageSize());
+    private void sortProducts(CriteriaQuery<Product> cq) {
+    }
+
+    public CustomPageDTO<Product> getPaginatedProductsWithQuery(ProductSorter pc) {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Product> cq = cb.createQuery(Product.class);
         Root<Product> product = cq.from(Product.class);
 
-        String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
-
+        //list for storing all the criteria predicates
         List<Predicate> finalPredicates = new ArrayList<>();
 
+        //predicate for searching for products based on the name
+        Predicate predicateName = cb.like(cb.upper(product.get("productName")), ("%" + pc.getQuery() + "%").toUpperCase());
+        finalPredicates.add(cb.and(predicateName));
+
+        //sort the results
+        // call sortProducts()
+
+        //filter the results
+        // call filterProducts()
+
+        cq.where(finalPredicates.toArray(new Predicate[0]));
+        List<Product> result = em.createQuery(cq).getResultList();
+
+        PagedListHolder<Product> page = new PagedListHolder<>(result);
+        page.setPage(pc.getPageNumber() - 1);
+        page.setPageSize(pc.getPageSize());
+
+        CustomPageDTO<Product> dto = new CustomPageDTO<>(page.getPageList(), page.getPageSize(), page.getPageCount(), page.getNrOfElements());
+        if(page.getPageCount() < pc.getPageNumber()) dto.setContent(new ArrayList<>());
+        return dto;
+    }
+    public CustomPageDTO<Product> getPaginatedProductsWithoutQuery(ProductSorter pc) {
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Product> cq = cb.createQuery(Product.class);
+        Root<Product> product = cq.from(Product.class);
+
+        //list for storing all the criteria predicates
+        List<Predicate> finalPredicates = new ArrayList<>();
+
+        //sort the results
+        // call sortProducts()
+
+        //filter the results
+        // call filterProducts()
+
+        //filter by category
+        String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
         if(!Objects.equals(productCategoryString, "All")) {
             // Define the category name parameter
             ParameterExpression<String> categoryNameParam = cb.parameter(String.class, "categoryName");
@@ -178,19 +221,17 @@ public class ProductService {
             finalPredicates.add(predicateCategory);
         }
 
-        Predicate predicateName = cb.like(cb.upper(product.get("productName")), ("%" + pc.getQuery() + "%").toUpperCase());
-        cq.orderBy(cb.asc(product.get("productName")));
-        finalPredicates.add(cb.and(predicateName));
         cq.where(finalPredicates.toArray(new Predicate[0]));
-
         Query query = em.createQuery(cq);
+
         if(!Objects.equals(productCategoryString, "All")) query.setParameter("categoryName", productCategoryString);
         List<Product> result = query.getResultList();
-        System.out.println(result);
-        return new PageImpl<>(result, pageRequest, result.size());
+        PagedListHolder<Product> page = new PagedListHolder<>(result);
+        page.setPage(pc.getPageNumber() - 1);
+        page.setPageSize(pc.getPageSize());
 
-        /*if(productCategoryRepository.existsById(pc.getProductCategory().getCategoryID()))
-            if(Objects.equals(productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName(), "All")) return productRepository.findAllByProductNameContainingIgnoreCaseOrderByProductNameAsc(pageRequest, pc.getQuery());
-        return productRepository.findAllByProductCategoryAndProductNameContainingIgnoreCaseOrderByProductPrice(pageRequest, pc.getProductCategory(), pc.getQuery());*/
+        CustomPageDTO<Product> dto = new CustomPageDTO<>(page.getPageList(), page.getPageSize(), page.getPageCount(), page.getNrOfElements());
+        if(page.getPageCount() < pc.getPageNumber()) dto.setContent(new ArrayList<>());
+        return dto;
     }
 }
