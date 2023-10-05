@@ -65,7 +65,7 @@ public class ProductController {
     }
 
     @PostMapping(path = "/paginate/filter")
-    public List<Product> getPaginatedProducts(@RequestBody ProductSorter pc) {
+    public Page<Product> getPaginatedProducts(@RequestBody ProductSorter pc) {
         return productService.getPaginatedProducts(pc);
     }
 }

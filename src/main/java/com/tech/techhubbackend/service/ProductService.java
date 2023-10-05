@@ -14,6 +14,7 @@ import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorE
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
+import com.tech.techhubbackend.model.ProductCategory;
 import com.tech.techhubbackend.model.ProductImage;
 import com.tech.techhubbackend.repository.ImageRepository;
 import com.tech.techhubbackend.repository.ProductCategoryRepository;
@@ -155,7 +156,7 @@ public class ProductService {
         return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
-    public List<Product> getPaginatedProducts(ProductSorter pc) {
+    public Page<Product> getPaginatedProducts(ProductSorter pc) {
 
         PageRequest pageRequest = PageRequest.of(pc.getPageNumber()-1, pc.getPageSize());
 
@@ -163,28 +164,30 @@ public class ProductService {
         CriteriaQuery<Product> cq = cb.createQuery(Product.class);
         Root<Product> product = cq.from(Product.class);
 
-        //String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
+        String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
 
-        // Define the category name parameter
-        //ParameterExpression<String> categoryNameParam = cb.parameter(String.class, "categoryName");
+        List<Predicate> finalPredicates = new ArrayList<>();
 
-        // Join the Product entity with the ProductCategory entity
-        //Join<Product, ProductCategory> categoryJoin = product.join("productCategory");
+        if(!Objects.equals(productCategoryString, "All")) {
+            // Define the category name parameter
+            ParameterExpression<String> categoryNameParam = cb.parameter(String.class, "categoryName");
+            // Join the Product entity with the ProductCategory entity
+            Join<Product, ProductCategory> categoryJoin = product.join("productCategory");
+            // Create the predicate to check if the product belongs to the specified category
+            Predicate predicateCategory = cb.equal(categoryJoin.get("categoryName"), categoryNameParam);
+            finalPredicates.add(predicateCategory);
+        }
 
-        // Create the predicate to check if the product belongs to the specified category
-        //Predicate predicateCategory = cb.equal(categoryJoin.get("categoryName"), categoryNameParam);
-
-
-        Predicate predicateName = cb.like(product.get("productName"), "%a%");
+        Predicate predicateName = cb.like(cb.upper(product.get("productName")), ("%" + pc.getQuery() + "%").toUpperCase());
         cq.orderBy(cb.asc(product.get("productName")));
-        Predicate finalPredicate = cb.and(predicateName);
-        cq.where(finalPredicate);
+        finalPredicates.add(cb.and(predicateName));
+        cq.where(finalPredicates.toArray(new Predicate[0]));
 
-        //query.setParameter("productCategory", productCategoryString);
-        List<Product> result = em.createQuery(cq).getResultList();
+        Query query = em.createQuery(cq);
+        if(!Objects.equals(productCategoryString, "All")) query.setParameter("categoryName", productCategoryString);
+        List<Product> result = query.getResultList();
         System.out.println(result);
-        Page<Product> result1 = new PageImpl<>(result, pageRequest, result.size());
-        return result;
+        return new PageImpl<>(result, pageRequest, result.size());
 
         /*if(productCategoryRepository.existsById(pc.getProductCategory().getCategoryID()))
             if(Objects.equals(productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName(), "All")) return productRepository.findAllByProductNameContainingIgnoreCaseOrderByProductNameAsc(pageRequest, pc.getQuery());
