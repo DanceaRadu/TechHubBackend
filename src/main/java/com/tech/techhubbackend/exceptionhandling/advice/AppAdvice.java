@@ -39,7 +39,8 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
             ProductNotFoundException.class,
             ShoppingCartEntryNotFoundException.class,
             EmailVerificationNotFoundException.class,
-            ReviewNotFoundException.class
+            ReviewNotFoundException.class,
+            CategoryNotFoundException.class
     })
     public ResponseEntity<Object> imageNotFoundExceptionHandler(ImageNotFoundException e) {
         Map<String, Object> body = new LinkedHashMap<>();

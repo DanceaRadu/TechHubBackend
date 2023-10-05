@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import com.tech.techhubbackend.DTO.DTOs.ProductSorter;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
 import com.tech.techhubbackend.service.ProductService;
@@ -63,9 +64,8 @@ public class ProductController {
         return productService.findAllProductsByName(pageNumber, pageSize, query);
     }
 
-    //TODO delete
-    @GetMapping(path = "all")
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    @PostMapping(path = "/paginate/filter")
+    public List<Product> getPaginatedProducts(@RequestBody ProductSorter pc) {
+        return productService.getPaginatedProducts(pc);
     }
 }
