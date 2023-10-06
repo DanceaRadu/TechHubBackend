@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.controller;
 
 import com.github.fge.jsonpatch.JsonPatch;
+import com.tech.techhubbackend.DTO.DTOs.CustomPageDTO;
 import com.tech.techhubbackend.DTO.DTOs.ProductSorter;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.Product;
@@ -64,8 +65,13 @@ public class ProductController {
         return productService.findAllProductsByName(pageNumber, pageSize, query);
     }
 
+    @PostMapping(path = "/paginate/filter/query")
+    public CustomPageDTO<Product> getPaginatedProductsWithQuery(@RequestBody ProductSorter pc) {
+        return productService.getPaginatedProductsWithQuery(pc);
+    }
+
     @PostMapping(path = "/paginate/filter")
-    public Page<Product> getPaginatedProducts(@RequestBody ProductSorter pc) {
-        return productService.getPaginatedProducts(pc);
+    public CustomPageDTO<Product> getPaginatedProductsWithoutQuery(@RequestBody ProductSorter pc) {
+        return productService.getPaginatedProductsWithoutQuery(pc);
     }
 }

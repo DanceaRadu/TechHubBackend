@@ -18,13 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/user")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*", methods = {
-        RequestMethod.GET,
-        RequestMethod.POST,
-        RequestMethod.OPTIONS,
-        RequestMethod.DELETE,
-        RequestMethod.PUT,
-        RequestMethod.PATCH})
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 public class UserController {
 
     private final JwtService jwtService;
