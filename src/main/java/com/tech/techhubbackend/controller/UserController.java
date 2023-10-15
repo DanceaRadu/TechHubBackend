@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.controller;
 
+import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
@@ -73,6 +74,12 @@ public class UserController {
     private void updateQuantity(@RequestBody ShoppingCartEntry newEntry, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         userService.updateQuantity(UUID.fromString(jwtService.extractID(token)), newEntry);
+    }
+
+    @GetMapping(path = "reviews")
+    private List<ReviewDTO> getUserReviews(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return userService.getUserReviews(UUID.fromString(jwtService.extractID(token)));
     }
 
     @PostMapping(path = "email/update/{email}")

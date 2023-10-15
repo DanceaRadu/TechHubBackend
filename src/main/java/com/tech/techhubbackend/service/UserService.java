@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.service;
 
+import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
 import com.tech.techhubbackend.DTO.mappers.DTOMapper;
@@ -8,6 +9,7 @@ import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
 import com.tech.techhubbackend.model.User;
 import com.tech.techhubbackend.repository.ProductRepository;
+import com.tech.techhubbackend.repository.ReviewRepository;
 import com.tech.techhubbackend.repository.ShoppingCartEntryRepository;
 import com.tech.techhubbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +31,16 @@ public class UserService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ShoppingCartEntryRepository shoppingCartEntryRepository;
+    private final ReviewRepository reviewRepository;
     private final DTOMapper dtoMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository, DTOMapper dtoMapper, ProductRepository productRepository, ShoppingCartEntryRepository shoppingCartEntryRepository) {
+    public UserService(UserRepository userRepository, DTOMapper dtoMapper, ProductRepository productRepository, ShoppingCartEntryRepository shoppingCartEntryRepository, ReviewRepository reviewRepository) {
         this.userRepository = userRepository;
         this.dtoMapper = dtoMapper;
         this.productRepository = productRepository;
         this.shoppingCartEntryRepository = shoppingCartEntryRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     public UserDetailsDTO getUserDetails(UUID userID) {
@@ -117,5 +121,11 @@ public class UserService {
     public boolean checkVerifiedEmailStatus(UUID userID) {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
         return userRepository.getReferenceById(userID).isVerified();
+    }
+
+    public List<ReviewDTO> getUserReviews(UUID userID) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        User user = userRepository.getReferenceById(userID);
+        return reviewRepository.getReviewsByReviewer(user).stream().map(dtoMapper::reviewToReviewDTO).toList();
     }
 }

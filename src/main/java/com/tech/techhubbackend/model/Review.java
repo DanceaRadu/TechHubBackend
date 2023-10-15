@@ -25,6 +25,9 @@ public @Data class Review {
     @JoinColumn(name = "product_id", referencedColumnName = "product_id", nullable = false)
     private Product reviewedProduct;
 
+    @Column(name = "review_title", nullable = false, length = 200)
+    private String reviewTitle;
+
     @Column(name = "review_comment", nullable = false, length = 2000)
     private String reviewComment;
 

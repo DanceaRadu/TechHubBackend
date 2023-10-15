@@ -41,6 +41,7 @@ public class ReviewService {
         if(!productRepository.existsById(r.getReviewedProduct().getProductID())) throw new ProductNotFoundException(r.getReviewedProduct().getProductID());
 
         Review review = dtoMapper.reviewDTOToReview(r);
+        review.setReviewTitle(r.getReviewTitle());
         review.setReviewer(userRepository.getReferenceById(userID));
         reviewRepository.save(review);
     }

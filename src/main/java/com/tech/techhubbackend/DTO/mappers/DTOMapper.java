@@ -13,4 +13,5 @@ public interface DTOMapper {
     UserDetailsDTO userToUserDetailsDTO(User user);
     ShoppingCartEntryDTO shoppingCartEntryToShoppingCartEntryDTO(ShoppingCartEntry shoppingCartEntry);
     Review reviewDTOToReview(ReviewDTO review);
+    ReviewDTO reviewToReviewDTO(Review review);
 }
