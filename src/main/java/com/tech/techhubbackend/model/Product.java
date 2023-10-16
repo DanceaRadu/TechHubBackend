@@ -1,11 +1,13 @@
 package com.tech.techhubbackend.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.tech.techhubbackend.DTO.DTOs.ReviewDTOWithUser;
 import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "products")
@@ -39,6 +41,15 @@ public @Data class Product {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private ProductCategory productCategory;
+
+    @Transient
+    private List<ReviewDTOWithUser> reviewDTOs;
+
+    public List<ReviewDTOWithUser> getReviewDTOs() {
+        return productReviews.stream()
+                .map(ReviewDTOWithUser::new)
+                .collect(Collectors.toList());
+    }
 
     public String toString() {
         return "This method is only written so that Criteria queries dont break";

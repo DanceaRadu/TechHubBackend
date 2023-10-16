@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.DTO.mappers;
 
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
+import com.tech.techhubbackend.DTO.DTOs.ReviewDTOWithUser;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
 import com.tech.techhubbackend.model.Review;
@@ -13,5 +14,8 @@ public interface DTOMapper {
     UserDetailsDTO userToUserDetailsDTO(User user);
     ShoppingCartEntryDTO shoppingCartEntryToShoppingCartEntryDTO(ShoppingCartEntry shoppingCartEntry);
     Review reviewDTOToReview(ReviewDTO review);
+
     ReviewDTO reviewToReviewDTO(Review review);
+
+    ReviewDTOWithUser reviewToReviewDTOWithUser(Review review);
 }

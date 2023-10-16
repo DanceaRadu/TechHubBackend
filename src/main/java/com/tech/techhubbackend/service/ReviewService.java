@@ -12,6 +12,7 @@ import com.tech.techhubbackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
@@ -43,6 +44,7 @@ public class ReviewService {
         Review review = dtoMapper.reviewDTOToReview(r);
         review.setReviewTitle(r.getReviewTitle());
         review.setReviewer(userRepository.getReferenceById(userID));
+        review.setPostDate(LocalDate.now());
         reviewRepository.save(review);
     }
 

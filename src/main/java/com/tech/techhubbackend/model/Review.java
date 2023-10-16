@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -33,4 +34,7 @@ public @Data class Review {
 
     @Column(name = "review_score", nullable = false)
     private int reviewScore;
+
+    @Column(name = "post_date")
+    private LocalDate postDate;
 }
