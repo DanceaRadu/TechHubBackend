@@ -45,6 +45,9 @@ public class SecurityConfig {
 
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers("/api/v1/auth/validate").authenticated()
+
+                .requestMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
+
                 .anyRequest()
                 .authenticated()
                 );
