@@ -42,6 +42,9 @@ public @Data class Product {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private ProductCategory productCategory;
 
+    @Column(name = "specs")
+    private String specs;
+
     @Transient
     private List<ReviewDTOWithUser> reviewDTOs;
 
