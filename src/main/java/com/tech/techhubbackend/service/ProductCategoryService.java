@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductCategoryService {
@@ -31,6 +32,6 @@ public class ProductCategoryService {
         return productCategoryRepository.getReferenceById(id);
     }
     public List<ProductCategory> getAllCategories() {
-        return productCategoryRepository.findAll();
+        return productCategoryRepository.findAll().stream().sorted((o1, o2) -> o2.getCategoryName().compareTo(o1.getCategoryName())).collect(Collectors.toList());
     }
 }

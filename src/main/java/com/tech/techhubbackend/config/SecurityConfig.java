@@ -47,6 +47,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/validate").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/review/**").authenticated()
 
                 .anyRequest()
                 .authenticated()

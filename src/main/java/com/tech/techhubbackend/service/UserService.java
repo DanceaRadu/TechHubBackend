@@ -126,6 +126,6 @@ public class UserService {
     public List<ReviewDTO> getUserReviews(UUID userID) {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
         User user = userRepository.getReferenceById(userID);
-        return reviewRepository.getReviewsByReviewer(user).stream().map(dtoMapper::reviewToReviewDTO).toList();
+        return reviewRepository.getReviewsByReviewer(user).stream().map(ReviewDTO::new).toList();
     }
 }

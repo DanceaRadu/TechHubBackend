@@ -211,7 +211,7 @@ public class ProductService {
 
         //filter by category
         String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
-        if(!Objects.equals(productCategoryString, "All")) {
+        if(!Objects.equals(productCategoryString, "-All")) {
             // Define the category name parameter
             ParameterExpression<String> categoryNameParam = cb.parameter(String.class, "categoryName");
             // Join the Product entity with the ProductCategory entity
@@ -224,7 +224,7 @@ public class ProductService {
         cq.where(finalPredicates.toArray(new Predicate[0]));
         Query query = em.createQuery(cq);
 
-        if(!Objects.equals(productCategoryString, "All")) query.setParameter("categoryName", productCategoryString);
+        if(!Objects.equals(productCategoryString, "-All")) query.setParameter("categoryName", productCategoryString);
         List<Product> result = query.getResultList();
         PagedListHolder<Product> page = new PagedListHolder<>(result);
         page.setPage(pc.getPageNumber() - 1);

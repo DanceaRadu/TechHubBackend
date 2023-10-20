@@ -36,7 +36,8 @@ public class ReviewController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteReview(@PathVariable UUID id) {
-        reviewService.deleteReview(id);
+    public void deleteReview(@PathVariable UUID id, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        reviewService.deleteReview(id, UUID.fromString(jwtService.extractID(token)));
     }
 }
