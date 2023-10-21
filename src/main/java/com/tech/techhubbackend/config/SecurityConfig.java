@@ -49,6 +49,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/review/**").authenticated()
 
+                .requestMatchers("/api/v1/favorite/**").authenticated()
+
                 .anyRequest()
                 .authenticated()
                 );

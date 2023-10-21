@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.service;
 
+import com.tech.techhubbackend.DTO.DTOs.FavoriteEntryGetDTO;
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
@@ -8,10 +9,7 @@ import com.tech.techhubbackend.exceptionhandling.exceptions.*;
 import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
 import com.tech.techhubbackend.model.User;
-import com.tech.techhubbackend.repository.ProductRepository;
-import com.tech.techhubbackend.repository.ReviewRepository;
-import com.tech.techhubbackend.repository.ShoppingCartEntryRepository;
-import com.tech.techhubbackend.repository.UserRepository;
+import com.tech.techhubbackend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -24,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -32,15 +31,23 @@ public class UserService {
     private final ProductRepository productRepository;
     private final ShoppingCartEntryRepository shoppingCartEntryRepository;
     private final ReviewRepository reviewRepository;
+    private final FavoriteEntryRepository favoriteEntryRepository;
     private final DTOMapper dtoMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository, DTOMapper dtoMapper, ProductRepository productRepository, ShoppingCartEntryRepository shoppingCartEntryRepository, ReviewRepository reviewRepository) {
+    public UserService(UserRepository userRepository,
+                       DTOMapper dtoMapper,
+                       ProductRepository productRepository,
+                       ShoppingCartEntryRepository shoppingCartEntryRepository,
+                       ReviewRepository reviewRepository,
+                       FavoriteEntryRepository favoriteEntryRepository
+                       ) {
         this.userRepository = userRepository;
         this.dtoMapper = dtoMapper;
         this.productRepository = productRepository;
         this.shoppingCartEntryRepository = shoppingCartEntryRepository;
         this.reviewRepository = reviewRepository;
+        this.favoriteEntryRepository = favoriteEntryRepository;
     }
 
     public UserDetailsDTO getUserDetails(UUID userID) {
@@ -127,5 +134,11 @@ public class UserService {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
         User user = userRepository.getReferenceById(userID);
         return reviewRepository.getReviewsByReviewer(user).stream().map(ReviewDTO::new).toList();
+    }
+
+    public List<FavoriteEntryGetDTO> getUserFavorites(UUID userID) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        User user = userRepository.getReferenceById(userID);
+        return favoriteEntryRepository.getFavoriteEntriesByUser(user).stream().map(FavoriteEntryGetDTO::new).collect(Collectors.toList());
     }
 }

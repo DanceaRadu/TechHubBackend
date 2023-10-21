@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.controller;
 
+import com.tech.techhubbackend.DTO.DTOs.FavoriteEntryGetDTO;
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
@@ -80,6 +81,12 @@ public class UserController {
     private List<ReviewDTO> getUserReviews(HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         return userService.getUserReviews(UUID.fromString(jwtService.extractID(token)));
+    }
+
+    @GetMapping(path = "favorites")
+    private List<FavoriteEntryGetDTO> getUserFavorites(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return userService.getUserFavorites(UUID.fromString(jwtService.extractID(token)));
     }
 
     @PostMapping(path = "email/update/{email}")
