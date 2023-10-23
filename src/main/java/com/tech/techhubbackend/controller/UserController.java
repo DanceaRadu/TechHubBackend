@@ -1,5 +1,6 @@
 package com.tech.techhubbackend.controller;
 
+import com.github.fge.jsonpatch.JsonPatch;
 import com.tech.techhubbackend.DTO.DTOs.FavoriteEntryGetDTO;
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
@@ -75,6 +76,12 @@ public class UserController {
     private void updateQuantity(@RequestBody ShoppingCartEntry newEntry, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         userService.updateQuantity(UUID.fromString(jwtService.extractID(token)), newEntry);
+    }
+
+    @PatchMapping(consumes = "application/json-patch+json")
+    public void patchUser(@RequestBody JsonPatch patch, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.patchUser(UUID.fromString(jwtService.extractID(token)), patch);
     }
 
     @GetMapping(path = "reviews")

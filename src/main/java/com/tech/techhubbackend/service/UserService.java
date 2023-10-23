@@ -1,5 +1,13 @@
 package com.tech.techhubbackend.service;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchException;
 import com.tech.techhubbackend.DTO.DTOs.FavoriteEntryGetDTO;
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
@@ -52,7 +60,7 @@ public class UserService {
 
     public UserDetailsDTO getUserDetails(UUID userID) {
         if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
-        return dtoMapper.userToUserDetailsDTO(userRepository.getReferenceById(userID));
+        return new UserDetailsDTO(userRepository.getReferenceById(userID));
     }
 
     public Resource getUserPicture(UUID userID) {
@@ -67,6 +75,31 @@ public class UserService {
         } catch (IOException e) {
             throw new ImageNotFoundException();
         }
+    }
+
+    public void patchUser(UUID userID, JsonPatch patch) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        try {
+            User userPatched;
+            Optional<User> optionalUser = userRepository.findById(userID);
+            if(optionalUser.isPresent()) {
+                User u = optionalUser.get();
+                userPatched = applyPatchToUser(patch, u);
+            }
+            else throw new UserNotFoundException(userID);
+            userRepository.save(userPatched);
+        } catch (JsonPatchException | JsonProcessingException e) {
+            throw new InternalServerErrorException("Error parsing patch request." + e.getMessage());
+        }
+    }
+
+    private User applyPatchToUser(JsonPatch patch, User user) throws JsonPatchException, JsonProcessingException{
+        ObjectMapper o = new ObjectMapper();
+        o.findAndRegisterModules();
+        o.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        o.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        JsonNode patched = patch.apply(o.convertValue(user, JsonNode.class));
+        return o.treeToValue(patched, User.class);
     }
 
     public List<ShoppingCartEntryDTO> getUserShoppingCart(UUID userID) {
