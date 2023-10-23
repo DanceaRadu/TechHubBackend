@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.exceptionhandling.advice;
 
 import com.tech.techhubbackend.exceptionhandling.exceptions.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -83,5 +84,16 @@ public class AppAdvice extends ResponseEntityExceptionHandler {
         body.put("time", getCurrentTime());
 
         return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ResponseBody
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> dataIntegrityViolationExceptionHandler(DataIntegrityViolationException e) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", e.getMessage());
+        body.put("status", HttpStatus.CONFLICT);
+        body.put("time", getCurrentTime());
+
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
     }
 }

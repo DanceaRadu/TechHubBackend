@@ -42,7 +42,7 @@ public @Data class Product {
     @JoinColumn(name = "category_id", referencedColumnName = "category_id")
     private ProductCategory productCategory;
 
-    @Column(name = "specs")
+    @Column(name = "specs", length = 4096)
     private String specs;
 
     @Transient
