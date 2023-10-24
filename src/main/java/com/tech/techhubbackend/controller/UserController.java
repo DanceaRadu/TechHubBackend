@@ -14,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -52,6 +53,12 @@ public class UserController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping(path = "profilepicture")
+    private void addUserProfilePicture(@RequestPart MultipartFile image, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.addUserProfilePicture(UUID.fromString(jwtService.extractID(token)), image);
     }
 
     @GetMapping(path="shoppingcart")

@@ -28,9 +28,11 @@ import org.springframework.beans.support.PagedListHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileSystemUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,13 +71,15 @@ public class ProductService {
             Path path = Paths.get("D:/TechHub/images/product/" + p.getProductID());
             Files.createDirectories(path);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new InternalServerErrorException("Could not add product");
         }
         return p.getProductID();
     }
 
     public void deleteProduct(UUID uuid) {
         if(!productRepository.existsById(uuid)) throw new ProductNotFoundException(uuid);
+        String directoryPath = "D:/TechHub/images/product/" + productRepository.getReferenceById(uuid).getProductID();
+        FileSystemUtils.deleteRecursively(new File(directoryPath));
         productRepository.delete(productRepository.getReferenceById(uuid));
     }
 
@@ -132,7 +136,7 @@ public class ProductService {
             productImageRepository.save(productImage);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new InternalServerErrorException("Could not save product image");
         }
     }
 

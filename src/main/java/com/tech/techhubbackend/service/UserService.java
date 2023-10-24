@@ -18,15 +18,20 @@ import com.tech.techhubbackend.model.Image;
 import com.tech.techhubbackend.model.ShoppingCartEntry;
 import com.tech.techhubbackend.model.User;
 import com.tech.techhubbackend.repository.*;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +44,7 @@ public class UserService {
     private final ProductRepository productRepository;
     private final ShoppingCartEntryRepository shoppingCartEntryRepository;
     private final ReviewRepository reviewRepository;
+    private final ImageRepository imageRepository;
     private final FavoriteEntryRepository favoriteEntryRepository;
     private final DTOMapper dtoMapper;
 
@@ -48,7 +54,8 @@ public class UserService {
                        ProductRepository productRepository,
                        ShoppingCartEntryRepository shoppingCartEntryRepository,
                        ReviewRepository reviewRepository,
-                       FavoriteEntryRepository favoriteEntryRepository
+                       FavoriteEntryRepository favoriteEntryRepository,
+                       ImageRepository imageRepository
                        ) {
         this.userRepository = userRepository;
         this.dtoMapper = dtoMapper;
@@ -56,6 +63,7 @@ public class UserService {
         this.shoppingCartEntryRepository = shoppingCartEntryRepository;
         this.reviewRepository = reviewRepository;
         this.favoriteEntryRepository = favoriteEntryRepository;
+        this.imageRepository = imageRepository;
     }
 
     public UserDetailsDTO getUserDetails(UUID userID) {
@@ -75,6 +83,58 @@ public class UserService {
         } catch (IOException e) {
             throw new ImageNotFoundException();
         }
+    }
+
+    public void addUserProfilePicture(UUID userID, MultipartFile image) {
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        String uploadDirectory = "D:/TechHub/images/user/" + userID;
+
+        try {
+            Resource resource = new FileSystemResource(uploadDirectory);
+            if (!resource.exists() || !resource.getFile().isDirectory()) {
+                if (!resource.getFile().mkdirs())
+                    throw new InternalServerErrorException("Could not create user folder");
+            }
+
+            FileUtils.cleanDirectory(resource.getFile());
+            User user = userRepository.getReferenceById(userID);
+            if(user.getProfileImage() != null) {
+                Image tempImage = user.getProfileImage();
+                user.setProfileImage(null);
+                userRepository.save(user);
+                imageRepository.delete(tempImage);
+            }
+            if (image.isEmpty()) throw new ImageNotPresentException();
+
+            String filename = image.getOriginalFilename();
+            // Create a unique file name based on productID and provided filename
+            String uniqueFileName = generateUniqueFileName(filename, userID);
+
+            // Construct the file path where the image will be saved
+            Path filePath = Path.of(uploadDirectory, uniqueFileName);
+
+            // Save the image file to disk
+            Files.copy(image.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            //create a new image entity based on the file that was just saved to disk
+            Image imageEntity = new Image();
+            imageEntity.setFilename(uniqueFileName);
+            imageEntity.setFilePath(uploadDirectory);
+            imageRepository.save(imageEntity);
+
+            user = userRepository.getReferenceById(userID);
+            user.setProfileImage(imageEntity);
+            userRepository.save(user);
+
+        } catch (IOException e) {
+            throw new InternalServerErrorException("Could not create user folder");
+        }
+    }
+
+    private String generateUniqueFileName(String filename, UUID productID) {
+        String originalFileName = StringUtils.cleanPath(filename);
+        String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+        return productID.toString() + "_" + UUID.randomUUID() + extension;
     }
 
     public void patchUser(UUID userID, JsonPatch patch) {
