@@ -2,6 +2,7 @@ package com.tech.techhubbackend.service;
 
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.mappers.DTOMapper;
+import com.tech.techhubbackend.exceptionhandling.exceptions.ForbiddenRequestException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ReviewNotFoundException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.UserNotFoundException;
@@ -48,8 +49,10 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    public void deleteReview(UUID id) {
-        if(!reviewRepository.existsById(id)) throw new ReviewNotFoundException(id);
-        reviewRepository.deleteById(id);
+    public void deleteReview(UUID reviewID, UUID userID) {
+        if(!reviewRepository.existsById(reviewID)) throw new ReviewNotFoundException(reviewID);
+        if(!userRepository.existsById(userID)) throw new UserNotFoundException(userID);
+        if(!reviewRepository.getReferenceById(reviewID).getReviewer().getUserID().equals(userID)) throw new ForbiddenRequestException("Cannot delete a review of another user");
+        reviewRepository.deleteById(reviewID);
     }
 }

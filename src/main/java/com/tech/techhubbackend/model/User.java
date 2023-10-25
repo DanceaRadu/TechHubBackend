@@ -1,7 +1,10 @@
 package com.tech.techhubbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.tech.techhubbackend.auth.Role;
+import com.tech.techhubbackend.deserializer.CustomAuthorityDeserializer;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +17,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public @Data class User implements UserDetails {
 
     @Id
@@ -42,7 +46,6 @@ public @Data class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
-
     @Column(name = "is_verified")
     private boolean isVerified;
 
@@ -57,6 +60,11 @@ public @Data class User implements UserDetails {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "reviewer", cascade = CascadeType.REMOVE)
     private List<Review> userReviews;
 
+    @JsonManagedReference(value = "favoriteUser")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.REMOVE)
+    private List<FavoriteEntry> favorites;
+
+    @JsonDeserialize(using = CustomAuthorityDeserializer.class)
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

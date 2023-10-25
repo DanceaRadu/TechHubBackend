@@ -1,5 +1,7 @@
 package com.tech.techhubbackend.controller;
 
+import com.github.fge.jsonpatch.JsonPatch;
+import com.tech.techhubbackend.DTO.DTOs.FavoriteEntryGetDTO;
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
 import com.tech.techhubbackend.DTO.DTOs.ShoppingCartEntryDTO;
 import com.tech.techhubbackend.DTO.DTOs.UserDetailsDTO;
@@ -12,6 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -52,6 +55,12 @@ public class UserController {
         }
     }
 
+    @PostMapping(path = "profilepicture")
+    private void addUserProfilePicture(@RequestPart MultipartFile image, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.addUserProfilePicture(UUID.fromString(jwtService.extractID(token)), image);
+    }
+
     @GetMapping(path="shoppingcart")
     private List<ShoppingCartEntryDTO> getUserShoppingCart(HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
@@ -76,10 +85,22 @@ public class UserController {
         userService.updateQuantity(UUID.fromString(jwtService.extractID(token)), newEntry);
     }
 
+    @PatchMapping(consumes = "application/json-patch+json")
+    public void patchUser(@RequestBody JsonPatch patch, HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        userService.patchUser(UUID.fromString(jwtService.extractID(token)), patch);
+    }
+
     @GetMapping(path = "reviews")
     private List<ReviewDTO> getUserReviews(HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         return userService.getUserReviews(UUID.fromString(jwtService.extractID(token)));
+    }
+
+    @GetMapping(path = "favorites")
+    private List<FavoriteEntryGetDTO> getUserFavorites(HttpServletRequest request) {
+        String token = request.getHeader("Authorization").substring(7);
+        return userService.getUserFavorites(UUID.fromString(jwtService.extractID(token)));
     }
 
     @PostMapping(path = "email/update/{email}")

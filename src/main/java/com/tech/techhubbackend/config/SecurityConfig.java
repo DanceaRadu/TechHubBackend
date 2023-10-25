@@ -31,7 +31,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/product").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/v1/product/paginate/filter/**").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/product").hasAuthority("ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/v1/product").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/product").hasAuthority("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/product/**").permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/api/v1/product/image").hasAuthority("ADMIN")
@@ -47,6 +47,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/validate").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/api/v1/review/**").permitAll()
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/review/**").authenticated()
+
+                .requestMatchers("/api/v1/favorite/**").authenticated()
 
                 .anyRequest()
                 .authenticated()

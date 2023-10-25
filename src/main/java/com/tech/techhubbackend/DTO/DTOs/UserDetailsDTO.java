@@ -15,6 +15,7 @@ public @Data class UserDetailsDTO {
         this.lastName = u.getLastName();
         this.email = u.getEmail();
         this.role = u.getRole();
+        this.phoneNumber = u.getPhoneNumber();
         this.profileImage = u.getProfileImage();
     }
 
@@ -24,4 +25,5 @@ public @Data class UserDetailsDTO {
     private String email;
     private Role role;
     private Image profileImage;
+    private String phoneNumber;
 }
