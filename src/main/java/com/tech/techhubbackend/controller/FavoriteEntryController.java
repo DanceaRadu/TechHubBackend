@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/favorite")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FavoriteEntryController {
 
     private final FavoriteEntryService favoriteEntryService;

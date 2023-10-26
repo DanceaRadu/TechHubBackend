@@ -2,7 +2,9 @@ package com.tech.techhubbackend.DTO.DTOs;
 
 import com.tech.techhubbackend.model.ProductCategory;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public @Data class ProductSorter {
 
     private ProductCategory productCategory;
