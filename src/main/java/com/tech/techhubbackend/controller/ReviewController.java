@@ -1,6 +1,7 @@
 package com.tech.techhubbackend.controller;
 
 import com.tech.techhubbackend.DTO.DTOs.ReviewDTO;
+import com.tech.techhubbackend.DTO.DTOs.ReviewUpdateDTO;
 import com.tech.techhubbackend.model.Review;
 import com.tech.techhubbackend.service.JwtService;
 import com.tech.techhubbackend.service.ReviewService;
@@ -33,6 +34,12 @@ public class ReviewController {
     public void postReview(@RequestBody ReviewDTO r, HttpServletRequest request) {
         String token = request.getHeader("Authorization").substring(7);
         reviewService.postReview(r, UUID.fromString(jwtService.extractID(token)));
+    }
+
+    @PutMapping("/{reviewID}")
+    public void putReview(@RequestBody ReviewUpdateDTO r, HttpServletRequest request, @PathVariable UUID reviewID) {
+        String token = request.getHeader("Authorization").substring(7);
+        reviewService.putReview(r, UUID.fromString(jwtService.extractID(token)), reviewID);
     }
 
     @DeleteMapping("/{id}")
