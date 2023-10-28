@@ -1,7 +1,9 @@
 package com.tech.techhubbackend.DTO.DTOs;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public @Data class RegisterRequest {
     private String username;
     private String email;

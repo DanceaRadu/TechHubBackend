@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("api/v1/category")
-@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ProductCategoryController {
 
     private final ProductCategoryService productCategoryService;
