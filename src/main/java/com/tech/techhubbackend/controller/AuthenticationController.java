@@ -36,6 +36,10 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.googleRegister(request));
     }
 
+    @PostMapping("authenticate/google")
+    public ResponseEntity<AuthenticationResponse> googleAuthenticate(@RequestBody GoogleRegisterRequest request) {
+        return ResponseEntity.ok(authenticationService.googleSignUp(request));
+    }
 
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticationRequest request) {

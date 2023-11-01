@@ -12,6 +12,7 @@ import com.tech.techhubbackend.model.User;
 import com.tech.techhubbackend.repository.EmailVerificationRepository;
 import com.tech.techhubbackend.repository.ImageRepository;
 import com.tech.techhubbackend.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -136,6 +137,17 @@ public class AuthenticationService {
         } catch (IOException e) {
             throw new InternalServerErrorException("Could not create user folder");
         }
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse
+                .builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    public AuthenticationResponse googleSignUp(GoogleRegisterRequest request) {
+        if(!userRepository.existsByGoogleId(request.getId())) throw new EntityNotFoundException();
+        User user = userRepository.getUserByGoogleId(request.getId()).orElseThrow(UserNotFoundException::new);
 
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse
