@@ -160,14 +160,49 @@ public class ProductService {
         return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
-    private Optional<Predicate> filterProducts(String filter, CriteriaBuilder cb, Root<Product> productRoot) {
+    private Optional<Predicate> filterProducts(String filter, CriteriaBuilder cb, Root<Product> productRoot, CriteriaQuery<Product> cq) {
         if(filter.equals("none")) return Optional.empty();
 
+//        try {
+//            Predicate pricePredicate, ratingPredicate = null;
+//            JSONObject jsonObject = new JSONObject(filter);
+//            int priceLow = jsonObject.getInt("priceLow");
+//            int priceHigh = jsonObject.getInt("priceHigh");
+//            pricePredicate = cb.between(productRoot.get("productPrice"), priceLow, priceHigh);
+//
+//            //filter using the min rating
+//            int minRating = jsonObject.getInt("minRating");
+//            if(minRating != 0) {
+//                Join<Product, Review> reviews = productRoot.join("productReviews", JoinType.LEFT);
+//                Expression<Double> averageRating = cb.avg(reviews.get("reviewScore"));
+//                cq.groupBy(productRoot.get("productID")); // Group by the product_id
+//                ratingPredicate = cb.greaterThanOrEqualTo(averageRating, (double) minRating);
+//            }
+//            if(ratingPredicate != null) return Optional.of(cb.and(ratingPredicate, pricePredicate));
+//            else return Optional.of(pricePredicate);
         try {
             JSONObject jsonObject = new JSONObject(filter);
             int priceLow = jsonObject.getInt("priceLow");
             int priceHigh = jsonObject.getInt("priceHigh");
-            return Optional.of(cb.between(productRoot.get("productPrice"), priceLow, priceHigh));
+            // Main query: Filter by price range
+            Predicate pricePredicate = cb.between(productRoot.get("productPrice"), priceLow, priceHigh);
+
+            // Create a sub-query for filtering by minimum rating
+            int minRating = jsonObject.getInt("minRating");
+            Subquery<UUID> subquery = null;
+            if(minRating != 0) {
+                subquery = cq.subquery(UUID.class);
+                Root<Product> subqueryProductRoot = subquery.from(Product.class);
+                Join<Product, Review> subqueryReviews = subqueryProductRoot.join("productReviews", JoinType.LEFT);
+                Expression<Double> subqueryAverageRating = cb.avg(subqueryReviews.get("reviewScore"));
+                subquery.select(subqueryProductRoot.get("productID"))
+                        .groupBy(subqueryProductRoot.get("productID"))
+                        .having(cb.greaterThanOrEqualTo(subqueryAverageRating, (double) minRating));
+                // Apply the sub-query in the WHERE clause
+                cq.where(cb.in(productRoot.get("productID")).value(subquery));
+            }
+            if(subquery != null) return Optional.of(cb.and(pricePredicate, cb.in(productRoot.get("productID")).value(subquery)));
+            else return Optional.of(pricePredicate);
         }catch (JSONException err){
             return Optional.empty();
         }
@@ -221,7 +256,7 @@ public class ProductService {
         sortProducts(product, cq, cb, pc);
 
         //filter the results
-        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product);
+        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product, cq);
         filterPredicate.ifPresent(finalPredicates::add);
 
         cq.where(finalPredicates.toArray(new Predicate[0]));
@@ -248,7 +283,7 @@ public class ProductService {
         sortProducts(product, cq, cb, pc);
 
         //filter the results
-        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product);
+        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product, cq);
         filterPredicate.ifPresent(finalPredicates::add);
 
         //filter by category
