@@ -131,7 +131,7 @@ public class UserService {
         }
     }
 
-    private String generateUniqueFileName(String filename, UUID productID) {
+    public static String generateUniqueFileName(String filename, UUID productID) {
         String originalFileName = StringUtils.cleanPath(filename);
         String extension = originalFileName.substring(originalFileName.lastIndexOf("."));
         return productID.toString() + "_" + UUID.randomUUID() + extension;

@@ -2,6 +2,7 @@ package com.tech.techhubbackend.controller;
 
 import com.tech.techhubbackend.DTO.DTOs.AuthenticationRequest;
 import com.tech.techhubbackend.DTO.DTOs.AuthenticationResponse;
+import com.tech.techhubbackend.DTO.DTOs.GoogleRegisterRequest;
 import com.tech.techhubbackend.DTO.DTOs.RegisterRequest;
 import com.tech.techhubbackend.service.AuthenticationService;
 import com.tech.techhubbackend.service.JwtService;
@@ -30,11 +31,20 @@ public class AuthenticationController {
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
+    @PostMapping("/register/google")
+    public ResponseEntity<AuthenticationResponse> googleRegister(@RequestBody GoogleRegisterRequest request) {
+        return ResponseEntity.ok(authenticationService.googleRegister(request));
+    }
+
+    @PostMapping("authenticate/google")
+    public ResponseEntity<AuthenticationResponse> googleAuthenticate(@RequestBody GoogleRegisterRequest request) {
+        return ResponseEntity.ok(authenticationService.googleSignUp(request));
+    }
+
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(authenticationService.authenticate(request));
     }
-
     @PostMapping("/validate")
     public boolean validateToken() {
         return true;

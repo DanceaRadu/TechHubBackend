@@ -28,10 +28,10 @@ public @Data class User implements UserDetails {
     @Column(name = "username", nullable = false, unique = true)
     private String _username;
 
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name")
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
@@ -42,6 +42,9 @@ public @Data class User implements UserDetails {
 
     @Column(name = "phone_number", unique = true)
     private String phoneNumber;
+
+    @Column(name = "google_id", unique = true)
+    private String googleId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)

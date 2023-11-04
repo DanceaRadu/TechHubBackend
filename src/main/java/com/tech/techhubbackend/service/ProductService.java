@@ -13,16 +13,15 @@ import com.tech.techhubbackend.DTO.DTOs.ProductSorter;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ImageNotPresentException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.InternalServerErrorException;
 import com.tech.techhubbackend.exceptionhandling.exceptions.ProductNotFoundException;
-import com.tech.techhubbackend.model.Image;
-import com.tech.techhubbackend.model.Product;
-import com.tech.techhubbackend.model.ProductCategory;
-import com.tech.techhubbackend.model.ProductImage;
+import com.tech.techhubbackend.model.*;
 import com.tech.techhubbackend.repository.ImageRepository;
 import com.tech.techhubbackend.repository.ProductCategoryRepository;
 import com.tech.techhubbackend.repository.ProductImageRepository;
 import com.tech.techhubbackend.repository.ProductRepository;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.support.PagedListHolder;
 import org.springframework.data.domain.Page;
@@ -161,11 +160,83 @@ public class ProductService {
         return productRepository.findAllByProductNameContainingIgnoreCase(pageRequest, query);
     }
 
-    private Predicate filterProducts(String filter) {
-        return null;
+    private Optional<Predicate> filterProducts(String filter, CriteriaBuilder cb, Root<Product> productRoot, CriteriaQuery<Product> cq) {
+        if(filter.equals("none")) return Optional.empty();
+
+//        try {
+//            Predicate pricePredicate, ratingPredicate = null;
+//            JSONObject jsonObject = new JSONObject(filter);
+//            int priceLow = jsonObject.getInt("priceLow");
+//            int priceHigh = jsonObject.getInt("priceHigh");
+//            pricePredicate = cb.between(productRoot.get("productPrice"), priceLow, priceHigh);
+//
+//            //filter using the min rating
+//            int minRating = jsonObject.getInt("minRating");
+//            if(minRating != 0) {
+//                Join<Product, Review> reviews = productRoot.join("productReviews", JoinType.LEFT);
+//                Expression<Double> averageRating = cb.avg(reviews.get("reviewScore"));
+//                cq.groupBy(productRoot.get("productID")); // Group by the product_id
+//                ratingPredicate = cb.greaterThanOrEqualTo(averageRating, (double) minRating);
+//            }
+//            if(ratingPredicate != null) return Optional.of(cb.and(ratingPredicate, pricePredicate));
+//            else return Optional.of(pricePredicate);
+        try {
+            JSONObject jsonObject = new JSONObject(filter);
+            int priceLow = jsonObject.getInt("priceLow");
+            int priceHigh = jsonObject.getInt("priceHigh");
+            // Main query: Filter by price range
+            Predicate pricePredicate = cb.between(productRoot.get("productPrice"), priceLow, priceHigh);
+
+            // Create a sub-query for filtering by minimum rating
+            int minRating = jsonObject.getInt("minRating");
+            Subquery<UUID> subquery = null;
+            if(minRating != 0) {
+                subquery = cq.subquery(UUID.class);
+                Root<Product> subqueryProductRoot = subquery.from(Product.class);
+                Join<Product, Review> subqueryReviews = subqueryProductRoot.join("productReviews", JoinType.LEFT);
+                Expression<Double> subqueryAverageRating = cb.avg(subqueryReviews.get("reviewScore"));
+                subquery.select(subqueryProductRoot.get("productID"))
+                        .groupBy(subqueryProductRoot.get("productID"))
+                        .having(cb.greaterThanOrEqualTo(subqueryAverageRating, (double) minRating));
+                // Apply the sub-query in the WHERE clause
+                cq.where(cb.in(productRoot.get("productID")).value(subquery));
+            }
+            if(subquery != null) return Optional.of(cb.and(pricePredicate, cb.in(productRoot.get("productID")).value(subquery)));
+            else return Optional.of(pricePredicate);
+        }catch (JSONException err){
+            return Optional.empty();
+        }
     }
 
-    private void sortProducts(CriteriaQuery<Product> cq) {
+    private void sortProducts(Root<Product> product,
+                              CriteriaQuery<Product> cq,
+                              CriteriaBuilder criteriaBuilder,
+                              ProductSorter pc) {
+
+        if(pc.getOrder().equals("Price asc"))
+            cq.orderBy(criteriaBuilder.asc(product.get("productPrice")));
+        if(pc.getOrder().equals("Price desc"))
+            cq.orderBy(criteriaBuilder.desc(product.get("productPrice")));
+
+        if(pc.getOrder().equals("A-Z")) {
+            Expression<String> name = product.get("productName");
+            Expression<String> lowerProductName = criteriaBuilder.function("LOWER", String.class, name);
+            cq.orderBy(criteriaBuilder.asc(lowerProductName));
+        }
+        if (pc.getOrder().equals("Rating")) {
+            Join<Product, Review> reviews = product.join("productReviews", JoinType.LEFT);
+            Expression<Double> averageRating = criteriaBuilder.avg(reviews.get("reviewScore"));
+            cq.groupBy(product.get("productID")); // Group by the product_id
+            Expression<Double> coalescedRating = criteriaBuilder.coalesce(averageRating, -10.0);
+            cq.orderBy(criteriaBuilder.desc(coalescedRating));
+        }
+
+        if(pc.getOrder().equals("No. of reviews")) {
+            Join<Product, Review> reviews = product.join("productReviews", JoinType.LEFT);
+            Expression<Long> totalReviewNumber = criteriaBuilder.count(reviews.get("reviewScore"));
+            cq.groupBy(product.get("productID")); // Group by the product_id
+            cq.orderBy(criteriaBuilder.desc(totalReviewNumber));
+        }
     }
 
     public CustomPageDTO<Product> getPaginatedProductsWithQuery(ProductSorter pc) {
@@ -182,10 +253,11 @@ public class ProductService {
         finalPredicates.add(cb.and(predicateName));
 
         //sort the results
-        // call sortProducts()
+        sortProducts(product, cq, cb, pc);
 
         //filter the results
-        // call filterProducts()
+        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product, cq);
+        filterPredicate.ifPresent(finalPredicates::add);
 
         cq.where(finalPredicates.toArray(new Predicate[0]));
         List<Product> result = em.createQuery(cq).getResultList();
@@ -208,10 +280,11 @@ public class ProductService {
         List<Predicate> finalPredicates = new ArrayList<>();
 
         //sort the results
-        // call sortProducts()
+        sortProducts(product, cq, cb, pc);
 
         //filter the results
-        // call filterProducts()
+        Optional<Predicate> filterPredicate = filterProducts(pc.getFilter(), cb, product, cq);
+        filterPredicate.ifPresent(finalPredicates::add);
 
         //filter by category
         String productCategoryString = productCategoryRepository.getReferenceById(pc.getProductCategory().getCategoryID()).getCategoryName();
